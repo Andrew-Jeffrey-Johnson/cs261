@@ -5,8 +5,8 @@
  * functions you might need.  Also, don't forget to include your name and
  * @oregonstate.edu email address below.
  *
- * Name:
- * Email:
+ * Name: Andrew Johnson
+ * Email: johnand4@oregonstate.edu
  */
 
 #include <stdlib.h>
@@ -36,7 +36,9 @@ struct list {
  * return a pointer to it.
  */
 struct list* list_create() {
-  return NULL;
+  struct list *new_list = malloc(sizeof(struct list));
+  new_list->head = NULL;
+  return new_list;
 }
 
 /*
@@ -51,6 +53,15 @@ struct list* list_create() {
  *   list - the linked list to be destroyed.  May not be NULL.
  */
 void list_free(struct list* list) {
+  struct link *next_link;
+  struct link *curr_link;
+  curr_link = list->head;
+  while (curr_link != NULL) {
+    next_link = curr_link->next;
+    free(curr_link);
+    curr_link = next_link;
+  }
+  free(list);
   return;
 }
 
@@ -68,6 +79,11 @@ void list_free(struct list* list) {
  *     which means that a pointer of any type can be passed.
  */
 void list_insert(struct list* list, void* val) {
+  struct link *new_link;
+  new_link = malloc(sizeof(struct link));
+  new_link->val = val;
+  new_link->next = list->head;
+  list->head = new_link;
   return;
 }
 
@@ -111,6 +127,51 @@ void list_insert(struct list* list, void* val) {
  *     Otherwise, it should return a non-zero value.
  */
 void list_remove(struct list* list, void* val, int (*cmp)(void* a, void* b)) {
+  struct link *prev_link;
+  struct link *curr_link;
+  struct link *next_link;
+
+  if ( (list->head != NULL) && (cmp(val, list->head->val) == 0) ) {
+    curr_link = list->head;
+    list->head = list->head->next;
+    free(curr_link);
+    return;
+  }
+  
+  curr_link = list->head->next;
+  prev_link = list->head;
+  while (curr_link != NULL) {
+    if (cmp(val, curr_link->val) == 0) {
+      prev_link->next = curr_link->next;
+      free(curr_link);
+      return;
+    }
+    curr_link = curr_link->next;
+    prev_link = prev_link->next;
+  }
+
+
+  /*
+  curr_link = list->head;
+  if (cmp(val, curr_link->val) == 0) {
+    free(curr_link);
+    curr_link = list->head;
+    list->head = list->head->next;
+    return;
+  }
+  curr_link = list->head->next;
+  prev_link = list->head;
+  next_link = NULL;
+  while (curr_link != NULL) {
+    next_link = curr_link->next;
+    if (cmp(val, curr_link->val) == 0) {
+      free(curr_link);
+      prev_link->next = next_link;
+      return;
+    }
+    curr_link = curr_link->next;
+  }
+  */
   return;
 }
 
@@ -159,6 +220,16 @@ void list_remove(struct list* list, void* val, int (*cmp)(void* a, void* b)) {
  *    the value `val`.
  */
 int list_position(struct list* list, void* val, int (*cmp)(void* a, void* b)) {
+  struct link *curr_link;
+  int index = 0;
+  curr_link = list->head;
+  while (curr_link != NULL) {
+    if (cmp(val, curr_link->val) == 0) {
+      return index;
+    }
+    curr_link = curr_link->next;
+    index++;
+  }
   return -1;
 }
 
@@ -173,5 +244,18 @@ int list_position(struct list* list, void* val, int (*cmp)(void* a, void* b)) {
  *     function returns this should contain the reversed list.
  */
 void list_reverse(struct list* list) {
+  struct link *prev;
+  struct link *curr;
+  struct link *next;
+  prev = NULL;
+  curr = list->head;
+  next = NULL;
+  while (curr != NULL) {
+    next = curr->next;
+    curr->next = prev;
+    prev = curr;
+    curr = next;
+  }
+  list->head = prev;
   return;
 }
