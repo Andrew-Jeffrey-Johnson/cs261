@@ -1,0 +1,5 @@
+*.o
+test_queue
+test_stack
+test_queue_from_stacks
+*.dSYM
