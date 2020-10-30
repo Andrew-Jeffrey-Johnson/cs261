@@ -25,4 +25,10 @@ void list_remove(struct list* list, void* val, int (*cmp)(void* a, void* b));
 int list_position(struct list* list, void* val, int (*cmp)(void* a, void* b));
 void list_reverse(struct list* list);
 
+/* 
+ * My added functions
+ */
+void* list_top(struct list* list);
+void* list_pop(struct list* list);
+
 #endif

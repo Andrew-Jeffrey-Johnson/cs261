@@ -199,3 +199,28 @@ void list_reverse(struct list* list) {
     curr = next;
   }
 }
+
+/*
+ * This function returns the value of the head of a given list
+ * Params: list - the linked list to yield the head 
+ */
+void* list_top (struct list* list) {
+  if (list->head == NULL) {
+    return NULL;
+  }
+  return list->head->val;
+}
+
+/*
+ * This function pops the head from a given list and returns the value
+ * of the head.
+ * Params: list - the linked list to have the head popped
+ */
+void* list_pop (struct list* list) {
+ void* val = list->head->val;
+ struct link* head = list->head;
+ list->head = list->head->next;
+ free(head);
+ return val;
+}
+
