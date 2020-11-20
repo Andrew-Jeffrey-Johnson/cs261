@@ -5,11 +5,12 @@
  * functions you might need.  Also, don't forget to include your name and
  * @oregonstate.edu email address below.
  *
- * Name:
- * Email:
+ * Name: Andrew Johnson
+ * Email: johnand4@oregonstate.edu
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "bst.h"
 #include "stack.h"
@@ -47,7 +48,25 @@ struct bst {
  * a pointer to it.
  */
 struct bst* bst_create() {
-  return NULL;
+  struct bst* new_bst = malloc(sizeof(struct bst));
+  new_bst->root = NULL;
+  return new_bst;
+}
+
+/*
+ * This function recursively frees each node in any bst_tree.
+ *
+ * Params:
+ *   node - the node to be freed.
+ */
+void bst_free_node(struct bst_node* node) {
+  if(node == NULL) {
+    return;
+  }
+  bst_free_node(node->left);
+  bst_free_node(node->right);
+  free(node);
+  return;
 }
 
 /*
@@ -60,7 +79,27 @@ struct bst* bst_create() {
  *   bst - the BST to be destroyed.  May not be NULL.
  */
 void bst_free(struct bst* bst) {
+  bst_free_node(bst->root);
+  free(bst);
   return;
+}
+
+/*
+ * This function checks if the given node has an element. If so, it 
+ * increments the counter.
+ *
+ * Params:
+ *   node - the node to be checked.
+ */
+int check_node(struct bst_node* node) {
+  if(node == NULL) {
+    return 0;
+  }
+  int left_count;
+  left_count = check_node(node->left);
+  int right_count;
+  right_count = check_node(node->right);
+  return left_count + right_count + 1;
 }
 
 /*
@@ -71,7 +110,17 @@ void bst_free(struct bst* bst) {
  *   bst - the BST whose elements are to be counted.  May not be NULL.
  */
 int bst_size(struct bst* bst) {
-  return 0;
+  return check_node(bst->root);
+}
+
+struct bst_node* create_node(int key, void* value) {
+  struct bst_node* node;
+  node = malloc(sizeof(struct bst_node));
+  node->key = key;
+  node->value = value;
+  node->left = NULL;
+  node->right = NULL;
+  return node;
 }
 
 /*
@@ -90,8 +139,54 @@ int bst_size(struct bst* bst) {
  *     which means that a pointer of any type can be passed.
  */
 void bst_insert(struct bst* bst, int key, void* value) {
+  struct bst_node* p;
+  struct bst_node* n;
+  p = NULL;
+  n = bst->root;
+  while(n != NULL) {
+    p = n;
+    if(key < n->key) {
+      n = n->left;
+    }
+    else {
+      n = n->right;
+    }
+  }
+  if(p == NULL) {
+    bst->root = create_node(key, value);
+  }
+  else if(key < p->key) {
+    p->left = create_node(key, value);
+  }
+  else {
+    p->right = create_node(key, value);
+  }
   return;
 }
+/*
+ * This function returns the node with the given key. If no such node 
+ * exists, NULL is returned.
+ *
+ * Params:
+ *   tree - the BST containing the node to be found
+ *   key - the key of the node being searched for
+ */
+struct bst_node* find_node(struct bst* tree, int key) {
+  struct bst_node* n;
+  n = tree->root;
+  while(n != NULL) {
+    if(n->key == key) {
+      return n;
+    }
+    else if(key < n->key) {
+      n = n->left;
+    }
+    else {
+      n = n->right;
+    }
+  }
+  return NULL;
+} 
 
 /*
  * This function should remove a key/value pair with a specified key from a
@@ -105,6 +200,80 @@ void bst_insert(struct bst* bst, int key, void* value) {
  *   key - the key of the key/value pair to be removed from the BST.
  */
 void bst_remove(struct bst* bst, int key) {
+  struct bst_node* n;
+  struct bst_node* p;
+  struct bst_node* s;
+  struct bst_node* ps;
+  p = NULL;
+  n = bst->root;
+  while(n != NULL) {
+    if(n->key == key) {
+      break;
+    }
+    p = n;
+    if(key < n->key) {
+      n = n->left;
+    }
+    else {
+      n = n->right;
+    }
+  }
+  if(n->left == NULL && n->right == NULL) {
+    if(p == bst->root) {
+      bst->root = NULL;
+    }
+    else if(p->left == n){
+      p->left = NULL;
+    }
+    else {
+      p->right = NULL;
+    }
+  }
+  else if(n->left == NULL){
+    if(p == bst->root) {
+      bst->root = n->right;
+    }
+    else if(p->left == n){
+      p->left = n->right;
+    }
+    else {
+      p->right = n->right;
+    }
+  }
+  else if(n->right == NULL) {
+    if(p == bst->root) {
+      bst->root = n->left;
+    }
+    else if(p->left == n){
+      p->left = n->left;
+    }
+    else {
+      p->right = n->left;
+    }
+  }
+  else {
+    ps = NULL;
+    s = n->right;
+    while(s->left != NULL) {
+      ps = s;
+      s = s->left;
+    }
+    s->left = n->left;
+    if(s != n->right) {
+      ps->left = s->right;
+      s->right = n->right;
+    }
+    if(p == bst->root || p == NULL) {
+      bst->root = s;
+    }
+    else if(p->left == n){
+      p->left = s;
+    }
+    else {
+      p->right = s;
+    }
+  }
+  free(n);
   return;
 }
 
@@ -125,7 +294,12 @@ void bst_remove(struct bst* bst, int key) {
  *   if the key `key` was not found in `bst`.
  */
 void* bst_get(struct bst* bst, int key) {
-  return NULL;
+  struct bst_node* node_found;
+  node_found = find_node(bst, key);
+  if(node_found == NULL) {
+    return NULL;
+  }
+  return node_found->value;
 }
 
 /*****************************************************************************
@@ -152,7 +326,10 @@ struct bst_iterator {
  *   bst - the BST for over which to create an iterator.  May not be NULL.
  */
 struct bst_iterator* bst_iterator_create(struct bst* bst) {
-  return NULL;
+  struct bst_iterator* iter = malloc(sizeof(struct bst_iterator));
+  iter->stack = stack_create();
+  stack_push(iter->stack, bst->root);
+  return iter;
 }
 
 /*
@@ -164,6 +341,8 @@ struct bst_iterator* bst_iterator_create(struct bst* bst) {
  *   iter - the BST iterator to be destroyed.  May not be NULL.
  */
 void bst_iterator_free(struct bst_iterator* iter) {
+  stack_free(iter->stack);
+  free(iter);
   return;
 }
 
@@ -178,6 +357,9 @@ void bst_iterator_free(struct bst_iterator* iter) {
  *     not be NULL.
  */
 int bst_iterator_has_next(struct bst_iterator* iter) {
+  if(stack_isempty(iter->stack) == 0) {
+    return 1;
+  }
   return 0;
 }
 
@@ -207,8 +389,14 @@ int bst_iterator_has_next(struct bst_iterator* iter) {
  *   pointed to by `iter`.
  */
 int bst_iterator_next(struct bst_iterator* iter, void** value) {
-  if (value) {
-    *value = NULL;
+  struct bst_node* node;
+  node = stack_pop(iter->stack);
+  if(node->right != NULL) {
+    stack_push(iter->stack, node->right);
   }
-  return 0;
+  if(node->left != NULL) {
+    stack_push(iter->stack, node->left);
+  }
+  *value = node->value;
+  return node->key;
 }
