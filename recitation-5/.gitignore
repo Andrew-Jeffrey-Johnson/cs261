@@ -1,0 +1,3 @@
+*.o
+time_dynarray_insert
+*.dSYM
